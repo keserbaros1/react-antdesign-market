@@ -1,4 +1,4 @@
-import { SHEET_URL } from '../config';
+import { SHEET_URL } from '../api/config';
 
 export async function fetchProducts(barkod) {
   try {
@@ -19,6 +19,27 @@ export async function login(username, password) {
     return data.success; // Başarı durumunu döndür
   } catch (error) {
     console.error("Giriş API hatası:", error);
+    return false;
+  }
+}
+
+
+
+export async function register(username, password) {
+  try {
+    const response = await fetch(`${SHEET_URL}?sheet=Giris&action=register`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ username, password }),
+
+    });
+    const data = await response.json();
+    return data.success; // Başarı durumunu döndür
+  } catch (error) {
+    console.error("Kayıt API hatası:", error);
     return false;
   }
 }
