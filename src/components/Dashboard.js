@@ -93,18 +93,6 @@ export default function Dashboard({ user, onLogout }) {
     </>
   );
 
-  // Alış görünümü
-  const renderPurchasesView = () => (
-    <div style={{ textAlign: 'center', padding: '20px' }}>
-      <Title level={4}>Alış İşlemleri</Title>
-      <p>Bu bölüm yakında eklenecektir.</p>
-      {/* Buraya alış işlemleri için form ve liste eklenebilir */}
-      {/* Örneğin:
-      <Input.Search placeholder="Alış için Barkod/Ürün Adı Girin" style={{ marginBottom: 16 }} />
-      <List bordered locale={{ emptyText: 'Alış listesi boş.' }} />
-      */}
-    </div>
-  );
 
 
   return (
