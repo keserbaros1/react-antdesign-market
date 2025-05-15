@@ -92,7 +92,7 @@ export async function sendPurchaseCartToAPI(purchaseCart) {
         body: JSON.stringify(purchaseCart.map(item => ({ ...item})))
     };
 
-    // const response = await fetch(`${NOCODEAPI_SHEET_URL}/addRows?tabId=Alis`, requestOptions);
+    const response = await fetch(`${NOCODEAPI_SHEET_URL}/addRows?tabId=Alis`, requestOptions);
 
     if (response.ok) {
 
@@ -140,8 +140,8 @@ export async function sendPurchaseCartToAPI(purchaseCart) {
         }
     }
 
-        return { success: true };
-        
+    return { success: true };
+
     } else {
     console.error("Alış bilgileri eklenemedi:");
     return { success: false, error: "Alış bilgileri eklenemedi" };
