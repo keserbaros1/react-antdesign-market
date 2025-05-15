@@ -1,5 +1,6 @@
 import { Button, Input, List, Card, Form, Row, Col } from 'antd';
 import { useState } from 'react';
+import { sendPurchaseCartToAPI } from '../api/api';
 
 export default function PurchasesDashboard({ user }) {
   const [form] = Form.useForm();
@@ -7,22 +8,30 @@ export default function PurchasesDashboard({ user }) {
 
   const handleAddToCart = (values) => {
     const today = new Date().toLocaleDateString(); // Bugünün tarihi
+
+    // Rastgele barkod oluşturma
+    const generateRandomBarcode = () => {
+      return Math.floor(100000000000 + Math.random() * 900000000000).toString(); // 12 haneli rastgele sayı
+    };
+
     const newItem = {
       ...values,
-      tarih: today,
-      kullanici: user,
+      Barkod: generateRandomBarcode(),
+      Tarih: today,
+      Kullanici: user,
     };
     setPurchaseCart((prev) => [...prev, newItem]);
     form.resetFields(); // Formu temizle
   };
 
-  const handleConfirmPurchase = () => {
-    console.log("Onaylanan Alış Sepeti:", purchaseCart);
-    // Burada API'ye istek atabilirsiniz
-    // Örneğin:
-    // await sendPurchaseCartToAPI(purchaseCart);
-    setPurchaseCart([]); // Sepeti temizle
+  const handleConfirmPurchase = async () => {
+    const result = await sendPurchaseCartToAPI(purchaseCart);
+  if (result.success) {
     alert("Alış işlemi başarıyla tamamlandı!");
+    setPurchaseCart([]); // Sepeti temizle
+  } else {
+    alert(`Alış işlemi başarısız! Hata: ${result.error}`);
+  }
   };
 
   return (
@@ -36,16 +45,7 @@ export default function PurchasesDashboard({ user }) {
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
-              name="barkod"
-              label="Barkod"
-              rules={[{ required: true, message: 'Barkod gerekli!' }]}
-            >
-              <Input placeholder="Barkod Numarası" />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="urunAdi"
+              name="UrunAdi"
               label="Ürün Adı"
               rules={[{ required: true, message: 'Ürün adı gerekli!' }]}
             >
@@ -56,7 +56,7 @@ export default function PurchasesDashboard({ user }) {
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
-              name="bilgi"
+              name="Bilgi"
               label="Bilgi"
               rules={[{ required: true, message: 'Bilgi gerekli!' }]}
             >
@@ -65,7 +65,7 @@ export default function PurchasesDashboard({ user }) {
           </Col>
           <Col span={12}>
             <Form.Item
-              name="fiyat"
+              name="Fiyat"
               label="Fiyat"
               rules={[{ required: true, message: 'Fiyat gerekli!' }]}
             >
@@ -76,9 +76,9 @@ export default function PurchasesDashboard({ user }) {
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
-              name="miktar"
-              label="Miktar"
-              rules={[{ required: true, message: 'Miktar gerekli!' }]}
+              name="Stok"
+              label="Stok"
+              rules={[{ required: true, message: 'Stok gerekli!' }]}
             >
               <Input type="number" placeholder="Miktar" />
             </Form.Item>
@@ -95,7 +95,7 @@ export default function PurchasesDashboard({ user }) {
         dataSource={purchaseCart}
         renderItem={(item) => (
           <List.Item>
-            {item.urunAdi} - {item.bilgi} - {item.fiyat}₺ - {item.miktar} adet - {item.tarih} - {item.kullanici}
+            {item.UrunAdi} - {item.Bilgi} - {item.Fiyat}₺ - {item.Stok} adet - {item.Tarih} - {item.Kullanici}
           </List.Item>
         )}
         locale={{ emptyText: 'Sepette ürün yok.' }}
