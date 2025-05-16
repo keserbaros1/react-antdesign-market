@@ -1,7 +1,7 @@
 // src/components/Dashboard.js
 import { Button, Switch, Row, Col, Typography, Input, List, Card } from 'antd';
 import { useEffect, useState } from 'react';
-import { fetchProducts } from '../api/api';
+import { fetchProducts, sendSalesCartToAPI } from '../api/api';
 
 import PurchasesDashboard from './PurchasesDashboard';
 // import SaleDashboard from './SaleDashboard';
@@ -40,9 +40,22 @@ export default function Dashboard({ user, onLogout }) {
     );
   };
 
-  const handleSaveSaleCart = () => {
-    const data = JSON.stringify(filteredSales, null, 2); // JSON formatına çevir
-    setFilteredSales([]); // Sepeti temizle
+  const handleSaveSaleCart = async () => {
+    const today = new Date().toLocaleDateString(); // Bugünün tarihi
+      const salesWithDateAndUser = filteredSales.map(item => ({
+    ...item,
+    tarih: today, // Tarih ekleniyor
+    kullanici: user // Kullanıcı adı ekleniyor
+  }));
+
+
+    const result = await sendSalesCartToAPI(salesWithDateAndUser); // API'ye gönder
+    if (result.success) {
+      alert("Satış işlemi başarıyla tamamlandı!");
+      setFilteredSales([]); // Sepeti temizle
+    } else {
+      alert(`Satış işlemi başarısız! Hata: ${result.error}`);
+    }
   };
   
   const handleSalesSearch = async (barkod) => {
