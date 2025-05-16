@@ -20,12 +20,12 @@ export default function LoginForm({ onLogin }) {
   
   const handleRegister = async (values) => {
     const { username, password } = values;
-    const success = await register(username, password);
-    if (success) {
+    const result = await register(username, password);
+    if (result.success) {
       alert("Kayıt başarılı! Giriş yapabilirsiniz.");
       setIsRegisterModalVisible(false); // Modalı kapat
     } else {
-      alert("Kayıt başarısız! Lütfen tekrar deneyin.");
+      alert(`Kayıt başarısız! Hata: ${result.error || "Bilinmeyen bir hata oluştu."}`);
     }
   };
 
