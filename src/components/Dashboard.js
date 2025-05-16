@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { fetchProducts } from '../api/api';
 
 import PurchasesDashboard from './PurchasesDashboard';
+// import SaleDashboard from './SaleDashboard';
 
 
 
@@ -16,8 +17,30 @@ export default function Dashboard({ user, onLogout }) {
   
     
   const { Title } = Typography;
-  
-   const handleSaveSaleCart = () => {
+
+  // Azaltma ve artırma işlemleri
+  const handleIncreaseSelected = (index) => {
+    setFilteredSales((prev) =>
+      prev.map((item, i) =>
+        i === index
+          ? { ...item, selected: Math.min(item.selected + 1, item.stok) } // Seçilen ürün sayısı stok miktarını aşamaz
+          : item
+      )
+    );
+  };
+
+  const handleDecreaseSelected = (index) => {
+    setFilteredSales((prev) =>
+      prev.map((item, i) =>
+        i === index
+          ? { ...item, selected: Math.max(item.selected - 1, 0) } // Seçilen ürün sayısı 0'ın altına inemez
+          : item
+      ).filter((item) => item.selected > 0) // Seçilen miktarı 0 olan ürünleri filtrele
+
+    );
+  };
+
+  const handleSaveSaleCart = () => {
     const data = JSON.stringify(filteredSales, null, 2); // JSON formatına çevir
     setFilteredSales([]); // Sepeti temizle
   };
@@ -28,7 +51,8 @@ export default function Dashboard({ user, onLogout }) {
       if (product.success && product.product) {
         // Eğer ürün bulunursa ve zaten listede yoksa ekle
         if (!filteredSales.some(item => item.barkod === product.product.barkod)) {
-          setFilteredSales(prev => [...prev, product.product]);
+          setFilteredSales(prev => [
+            ...prev, { ...product.product, selected: 1 }]); // Seçilen miktar 1 olarak başlat
         }
       } else {
         alert("Ürün bulunamadı!");
@@ -55,9 +79,30 @@ export default function Dashboard({ user, onLogout }) {
         header={<strong>Satış Listesi</strong>}
         bordered
         dataSource={filteredSales}
-        renderItem={item => (
-          <List.Item>
-            {item.urunAdi} - {item.bilgi} - {item.fiyat}₺
+        renderItem={(item, index) => (
+        <List.Item>
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <div>
+                {item.urunAdi} - {item.bilgi} - {item.fiyat}₺ - Stok: {item.stok} - Seçilen: {item.selected}
+              </div>
+              <div>
+                <Button
+                  size="small"
+                  onClick={() => handleDecreaseSelected(index)}
+                  disabled={item.selected <= 0} // Seçilen miktar 0 ise azaltma butonunu devre dışı bırak
+                  style={{ marginRight: 8 }}
+                >
+                  -
+                </Button>
+                <Button
+                  size="small"
+                  onClick={() => handleIncreaseSelected(index)}
+                  disabled={item.selected >= item.stok} // Seçilen miktar stok miktarını aşamaz
+                >
+                  +
+                </Button>
+              </div>
+            </div>
           </List.Item>
         )}
         locale={{ emptyText: 'Listede ürün yok.' }}
@@ -112,7 +157,10 @@ export default function Dashboard({ user, onLogout }) {
         />
       </div>
 
-      {currentView === 'sales' ? renderSalesView() : <PurchasesDashboard user={user} />}
+      {currentView === 'sales' ? 
+      renderSalesView() : 
+      // <SaleDashboard/> :
+      <PurchasesDashboard user={user} />}
     </div>
   );
 }
