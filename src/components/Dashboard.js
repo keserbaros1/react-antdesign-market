@@ -1,22 +1,27 @@
 // src/components/Dashboard.js
-import { Button, Input, List, Card, Typography, Switch, Row, Col } from 'antd';
+import { Button, Switch, Row, Col, Typography, Input, List, Card } from 'antd';
 import { useEffect, useState } from 'react';
 import { fetchProducts } from '../api/api';
 
-const { Title } = Typography;
+import PurchasesDashboard from './PurchasesDashboard';
+
+
 
 export default function Dashboard({ user, onLogout }) {
+  const [currentView, setCurrentView] = useState('sales'); // 'sales' veya 'purchases'
+  
   const [filteredSales, setFilteredSales] = useState([]);
   const [salesQuery, setSalesQuery] = useState("");
   const salesTotalPrice = filteredSales.reduce((sum, item) => sum + parseFloat(item.fiyat), 0);
-  const [currentView, setCurrentView] = useState('sales'); // 'sales' veya 'purchases'
-
   
-   const handleSaveCart = () => {
+    
+  const { Title } = Typography;
+  
+   const handleSaveSaleCart = () => {
     const data = JSON.stringify(filteredSales, null, 2); // JSON formatına çevir
     setFilteredSales([]); // Sepeti temizle
   };
-
+  
   const handleSalesSearch = async (barkod) => {
     try {
       const product = await fetchProducts(barkod); // Barkod ile API'ye istek gönder
@@ -35,27 +40,7 @@ export default function Dashboard({ user, onLogout }) {
     setSalesQuery(""); // Barkod alanını temizle
   };
 
-  // Sürekli dinleme kaldırıldı
-  // useEffect(() => {
-  //   fetchProducts().then(setProducts);
-  // }, []);  
 
-  // useEffect(() => {
-  //   const match = products.find(p => p.barkod === query);
-  //   if (match && !filtered.some(item => item.barkod === match.barkod)) {
-  //     setFiltered(prev => [...prev, match]);
-  //     setQuery(""); // barkod girildikten sonra input boşalsın
-  //   }  
-  // }, [query]);    
-
-
-  // Satış ve alış görünümünü geçiş
-    const handleViewChange = (checked) => {
-    setCurrentView(checked ? 'sales' : 'purchases');
-  };
-
-
-  // Satış görünümü
   const renderSalesView = () => (
     <>
       <Input.Search
@@ -83,7 +68,7 @@ export default function Dashboard({ user, onLogout }) {
           Toplam Tutar: {salesTotalPrice.toFixed(2)} ₺
           <Button
             type="primary"
-            onClick={handleSaveCart}
+            onClick={handleSaveSaleCart}
             style={{ marginTop: 16, display: 'block' }}
           >
             Satış Sepetini Kaydet
@@ -94,7 +79,14 @@ export default function Dashboard({ user, onLogout }) {
   );
 
 
+    
+  // Satış ve alış görünümünü geçiş
+    const handleViewChange = (checked) => {
+    setCurrentView(checked ? 'sales' : 'purchases');
+  };
 
+
+  
   return (
     <div style={{ padding: 24, maxWidth: 700, margin: 'auto' }}>
       <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
@@ -120,7 +112,7 @@ export default function Dashboard({ user, onLogout }) {
         />
       </div>
 
-      {currentView === 'sales' ? renderSalesView() : renderPurchasesView()}
+      {currentView === 'sales' ? renderSalesView() : <PurchasesDashboard user={user} />}
     </div>
   );
 }
