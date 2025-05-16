@@ -4,11 +4,13 @@ import { G00GLE_SHEET_URL, NOCODEAPI_SHEET_URL } from '../api/config';
 // Ürün sorgulama fonksiyonu
 export async function fetchProducts(barkod, urunAdi) {
   try {
-    const queryParam = barkod
-      ? `barkod=${encodeURIComponent(barkod)}`
-      : `urunAdi=${encodeURIComponent(urunAdi)}`;
+    // const queryParam = barkod
+    //   ? `barkod=${barkod}`
+    //   : `urunAdi=${urunAdi}`;
 
-    const response = await fetch(`${G00GLE_SHEET_URL}?sheet=Stok&${queryParam}`);
+    const queryParam = `barkod=${barkod}`;
+
+    const response = await fetch(`${G00GLE_SHEET_URL}?sheet=Stok&action=searchStock&${queryParam}`);
     const data = await response.json();
     return data;
   } catch (error) {
@@ -152,3 +154,85 @@ export async function sendPurchaseCartToAPI(purchaseCart) {
   }
 
 }
+
+
+
+// Satış işlemi gönderme fonksiyonu
+export async function sendSalesCartToAPI(salesCart) {
+  try {
+
+    // const salesCartList = salesCart.json();
+    const salesCartList = JSON.stringify(salesCart.map(item => ({ ...item}))); // JSON formatına çevir
+    
+
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+
+    let flag = true;
+
+    var requestOptions = {
+        method: "post",
+        headers: myHeaders,
+        redirect: "follow",
+        body: salesCartList
+    };
+
+    const response = await fetch(`${NOCODEAPI_SHEET_URL}/addRows?tabId=Satis`, requestOptions);
+
+    if (response.ok) {
+    // if (flag) {
+
+
+    // Apps Script ile ürünlerin indexlerini ve stok sayısını çekicez. 
+    const selectedList = salesCart.map(item => item.selected);
+    const stockList = salesCart.map(item => item.stok);
+    const rowIndexList = salesCart.map(item => item.rowIndex);
+
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+
+
+    // Her ürünün stok sayısını güncelle
+    for (let i = 0; i < rowIndexList.length; i++) {
+        const rowIndex = rowIndexList[i];
+        const stock = stockList[i];
+        const selected = selectedList[i];
+
+        console.log(rowIndex, stock);
+        if (Number(stock) - Number(selected) === 0) {
+
+            // Eğer ürünün stok sayısı 0 ise silme
+            var requestOptions = {
+                method: "delete",
+                headers: myHeaders,
+                redirect: "follow",
+            };
+            await fetch(`${NOCODEAPI_SHEET_URL}?tabId=Stok&row_id=${rowIndex}`, requestOptions);
+
+
+        } else {
+            var requestOptions = {
+                method: "put",
+                headers: myHeaders,
+                redirect: "follow",
+                body: JSON.stringify({"row_id":rowIndex,"Stok":Number(stock) - Number(selected)})
+            };
+
+            await fetch(`${NOCODEAPI_SHEET_URL}?tabId=Stok`, requestOptions)
+        }
+    }
+
+    return { success: true };
+
+    } else {
+    console.error("Satış bilgileri eklenemedi:");
+    return { success: false, error: "Satış bilgileri eklenemedi" };
+    }
+    } catch (error) {
+    console.error("Kayıt API hatası:", error);
+    return { success: false, error: "Kayıt sırasında bir hata oluştu." };
+  }
+
+}
+
+
